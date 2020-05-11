@@ -1,12 +1,161 @@
 <html>
 
 <head>
-<title>Scythe Selection</title>    
+<title>Scythe Selection</title>   
+     <meta charset="UTF-8">
 </head>
 
 <body>
-Here is a body    
+<input id="player_Number">
+    <p id= "heap_text"></p>
+    <button onclick="setPlayerNumber()">Set Player Number</button> <br>
+    <p id='player_info'></p>
+    <br>
+    <button onclick="generateBoard()">Generate Board</button>
+    <button onclick="resolveBidding('max_bid')"> Resolve Bidding</button>
+    <p id = 'bidReturns'></p>
+<script>
+    var playerNumber = 0;
+    var factions = [];
+    var playerMats = [];
+    var playerList = [];
+    var playerBids = [];
+    var bannedCombos = ['Rus-VietIndustrial', 'CrimeaPatriotic'];
+    var newFactions = [];
+    resetFactions();
+    function resetFactions() {
+        factions = ['Rus-Viet', 'Nordic', 'Albion', 'Polania', 'Saxony', 'Crimea', 'Togawa'];
+        playerMats = ['Mechanical', 'Militant', 'Innovative', 'Agricultural', 'Industrial', 'Engineering', 'Patriotic'];
+    }
+    function resetPlayers() {
+        playerList = [];
+        playerBids = [];
+    }
+    
+    function setPlayerNumber() {
+        playerNumber = document.getElementById('player_Number').value;
+        resetPlayers();
+        for (i = 0; i < playerNumber ; i++) {
+            playerList.push('Player '.concat(i.toString()));
+            playerBids.push([]);
+        }
+        playerInputText = 'Enter Player Names: <br>';
+        for (i = 0; i < playerNumber; i++) {
+            playerInputText = playerInputText.concat('<input id="playerName', i.toString(), '"> <button onclick=setPlayerName(', i.toString(), ')> Set Player Name </button> <br>');
+        }
+        playerInputText = playerInputText.concat('<button onclick = setPlayerNames()> Set All Player Names </button> <br>');
+        document.getElementById('player_info').innerHTML = playerInputText;
+    }
+    
+    function setPlayerName(n) {
+        playerList[n] = document.getElementById('playerName'.concat(n.toString())).value;
+        document.getElementById('output').innerHTML = playerList;
+    }
+    
+    function setPlayerNames() {
+        for (var n = 0; n < playerNumber; n++) {
+            setPlayerName(n);
+        }
+    }
+    
+    function generateBoard() {
+        newFactions = [];
+        var outputFactions = 'Your Name: <input id="playerName"> <br> Your Bids: <br>';
+        for (i = 0; i < playerNumber; i++) {
+            // Current issue is that the last faction is picked poorly, there isn't anything this does to deal with that. We need to repick all factions if we get Rus-Viet Industrial etc.
+            
+            var newPairing = [randPick(factions), randPick(playerMats)];
+            console.log(newPairing[0].toString().concat(newPairing[1].toString()));
+            newFactions.push(newPairing);
+            outputFactions = outputFactions.concat(newFactions[i][0], ' ', newFactions[i][1], '<input id="bid', i.toString(), '">' ,'<br>');
+        }
+        for (i = 0; i < playerNumber; i++) {
+            if (bannedCombos.includes(newFactions[i][0].toString().concat(newFactions[i][1].toString()))) {
+                resetFactions();
+                generateBoard();
+                return;
+            }
+        }
+        outputFactions = outputFactions.concat('<button onclick = submitBids()> Submit </button>');
+        document.getElementById('output').innerHTML = outputFactions;
+        
+        resetFactions();
+        return newFactions;
+    }
+    
+    function submitBids() {
+        var playerIndex = playerList.indexOf(document.getElementById('playerName').value);
+        playerBids[playerIndex] = [];
+        for (i = 0 ; i < playerNumber; i++) {
+            playerBids[playerIndex].push(Math.abs(document.getElementById('bid'.concat(i.toString())).value));
+            document.getElementById('bid'.concat(i.toString())).value = '';
+            document.getElementById('playerName').value = '';
+        }
+    }
+    
+    function randPick(list) {
+        var pick = Math.floor( list.length * Math.random() );
+        return list.splice(pick, 1);
+    }
+    var output_permutations = [];
+    
+    function resolveBidding(method) {
+        var bidResultString = '';
+        generate([...Array(parseInt(playerNumber)).keys()], output);
+        var best_performer = [0,[]];
+        if (true) {
+            for (var i = 0; i< output_permutations.length; i++) {
+                console.log(output_permutations);
+                console.log(maxBid(playerBids, [...output_permutations[i]]));
+                if (maxBid(playerBids, [...output_permutations[i]]) > best_performer[0]) {
+                    best_performer[0] = maxBid(playerBids, [...output_permutations[i]]);
+                    best_performer[1] = [...output_permutations[i]];
+                }
+            }
+        }
+        console.log('got here (before the loop) what follows is the player List');
+        console.log(playerList);
+        
+        for (var i = 0; i < playerList.length; i++) {
+            bidResultString = bidResultString.concat('Player ', playerList[i], ' receives ', newFactions[best_performer[1][i]], ' for ', playerBids[i][best_performer[1][i]].toString(), ' coins <br>');
+        }
+        document.getElementById('bidReturns').innerHTML = bidResultString;
+        console.log(best_performer);
+        return best_performer;
+    }
+    
+    function maxBid(playerBidsInput, testCombo) {
+        sum = 0;
+        for (var j = 0; j < playerNumber; j++) {
+            sum += parseInt(playerBidsInput[j][testCombo[j]]);
+        }
+        console.log(testCombo, sum);
+        return sum;
+    }
+    
+    function generate(array, result, n) {
+        n = n || array.length;
+        if (n == 1) {
+            result(array);
+        } else {
+            for (var i = 1; i <= n ; i++) {
+                generate(array, result, n-1);
+                if (n % 2) {
+                    [array[0], array[n-1]] = [array[n-1], array[0]];
+                } else {
+                    [array[i-1], array[n-1]] = [array[n-1], array[i-1]];
+                }
+            }
+        }
+    }
+    
+    function output(input) {
+        output_permutations.push([...input]);
+    }
+    
+</script>      
 </body>
-
+<p id = 'output'>fdasfs</p>
+<p id = 'otherOutput'></p>
 
 </html>
