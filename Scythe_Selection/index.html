@@ -1,3 +1,7 @@
+// To-Do:
+// Create alternate board generation method to generate all seven boards regardless, and then drop the ones bidded the lowest for.
+// Format things in a nicer fashion... might need to actually watch tutorials on how to do this well. There might be templates online
+
 <html>
 
 <head>
@@ -12,8 +16,8 @@
     <p id='player_info'></p>
     <br>
     <button onclick="generateBoard()">Generate Board</button>
-    <button onclick="resolveBidding('max_bid')"> Resolve Bidding</button>
     <p id = 'bidReturns'></p>
+    <p id = 'status'></p>
 <script>
     var playerNumber = 0;
     var factions = [];
@@ -87,10 +91,33 @@
         var playerIndex = playerList.indexOf(document.getElementById('playerName').value);
         playerBids[playerIndex] = [];
         for (i = 0 ; i < playerNumber; i++) {
-            playerBids[playerIndex].push(Math.abs(document.getElementById('bid'.concat(i.toString())).value));
+           if (isNaN(document.getElementById('bid'.concat(i.toString())).value)) {
+               document.getElementById('otherOutput2').innerHTML = 'Goddammit Kyle! I told you not to put strings in here!!! GRRRR... You have to bid again';
+               playerBids[playerIndex] = [];
+               return
+           }
+            playerBids[playerIndex].push(parseInt(Math.abs(document.getElementById('bid'.concat(i.toString())).value)));
             document.getElementById('bid'.concat(i.toString())).value = '';
             document.getElementById('playerName').value = '';
         }
+        if (Array.from(playerBids, (bid_set) => bid_set.length).indexOf(0) == -1) {
+            document.getElementById('status').innerHTML = "All bids submitted: <button id = \"resolve_bidding\"  onclick=\"resolveBidding(\'max_bid\')\"> Resolve Bidding</button>";
+            document.getElementById('resolve_bidding').focus();
+        } else {
+            document.getElementById('otherOutput').innerHTML = 'Yet to bid: '.concat(Array.from(findEmptyEntries(playerBids), (zero_index) => playerList[zero_index]));
+            document.getElementById('playerName').focus();
+        }
+        document.getElementById('otherOutput2').innerHTML = '';
+    }
+    
+    function findEmptyEntries(array){
+        // This for loop shamelessly taken off of Stack Exchange here: https://stackoverflow.com/questions/20798477/how-to-find-index-of-all-occurrences-of-element-in-array because I'm lazy
+        
+        var indexes = [], i;
+        for(i = 0; i < array.length; i++)
+            if (array[i].length == 0)
+                indexes.push(i);
+        return indexes;
     }
     
     function randPick(list) {
@@ -100,6 +127,7 @@
     var output_permutations = [];
     
     function resolveBidding(method) {
+        console.log('Bidding resolver started');
         var bidResultString = '';
         generate([...Array(parseInt(playerNumber)).keys()], output);
         var best_performer = [0,[]];
@@ -157,5 +185,6 @@
 </body>
 <p id = 'output'>fdasfs</p>
 <p id = 'otherOutput'></p>
+<p id = 'otherOutput2'></p>
 
 </html>
