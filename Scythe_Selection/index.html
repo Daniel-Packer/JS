@@ -1,190 +1,46 @@
-// To-Do:
-// Create alternate board generation method to generate all seven boards regardless, and then drop the ones bidded the lowest for.
-// Format things in a nicer fashion... might need to actually watch tutorials on how to do this well. There might be templates online
+<! To-Do:
+Format things in a nicer fashion... might need to actually watch tutorials on how to do this well. There might be templates online>
 
 <html>
 
 <head>
-<title>Scythe Selection</title>   
-     <meta charset="UTF-8">
+    <title>Scythe Selection</title>   
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<input id="player_Number">
-    <p id= "heap_text"></p>
-    <button onclick="setPlayerNumber()">Set Player Number</button> <br>
-    <p id='player_info'></p>
-    <br>
-    <button onclick="generateBoard()">Generate Board</button>
-    <p id = 'bidReturns'></p>
-    <p id = 'status'></p>
-<script>
-    var playerNumber = 0;
-    var factions = [];
-    var playerMats = [];
-    var playerList = [];
-    var playerBids = [];
-    var bannedCombos = ['Rus-VietIndustrial', 'CrimeaPatriotic'];
-    var newFactions = [];
-    resetFactions();
-    function resetFactions() {
-        factions = ['Rus-Viet', 'Nordic', 'Albion', 'Polania', 'Saxony', 'Crimea', 'Togawa'];
-        playerMats = ['Mechanical', 'Militant', 'Innovative', 'Agricultural', 'Industrial', 'Engineering', 'Patriotic'];
-    }
-    function resetPlayers() {
-        playerList = [];
-        playerBids = [];
-    }
+    <div class="header">
+        <h1>SCYLECTOR</h1>
+    </div>
     
-    function setPlayerNumber() {
-        playerNumber = document.getElementById('player_Number').value;
-        resetPlayers();
-        for (i = 0; i < playerNumber ; i++) {
-            playerList.push('Player '.concat(i.toString()));
-            playerBids.push([]);
-        }
-        playerInputText = 'Enter Player Names: <br>';
-        for (i = 0; i < playerNumber; i++) {
-            playerInputText = playerInputText.concat('<input id="playerName', i.toString(), '"> <button onclick=setPlayerName(', i.toString(), ')> Set Player Name </button> <br>');
-        }
-        playerInputText = playerInputText.concat('<button onclick = setPlayerNames()> Set All Player Names </button> <br>');
-        document.getElementById('player_info').innerHTML = playerInputText;
-    }
-    
-    function setPlayerName(n) {
-        playerList[n] = document.getElementById('playerName'.concat(n.toString())).value;
-        document.getElementById('output').innerHTML = playerList;
-    }
-    
-    function setPlayerNames() {
-        for (var n = 0; n < playerNumber; n++) {
-            setPlayerName(n);
-        }
-    }
-    
-    function generateBoard() {
-        newFactions = [];
-        var outputFactions = 'Your Name: <input id="playerName"> <br> Your Bids: <br>';
-        for (i = 0; i < playerNumber; i++) {
-            // Current issue is that the last faction is picked poorly, there isn't anything this does to deal with that. We need to repick all factions if we get Rus-Viet Industrial etc.
-            
-            var newPairing = [randPick(factions), randPick(playerMats)];
-            console.log(newPairing[0].toString().concat(newPairing[1].toString()));
-            newFactions.push(newPairing);
-            outputFactions = outputFactions.concat(newFactions[i][0], ' ', newFactions[i][1], '<input id="bid', i.toString(), '">' ,'<br>');
-        }
-        for (i = 0; i < playerNumber; i++) {
-            if (bannedCombos.includes(newFactions[i][0].toString().concat(newFactions[i][1].toString()))) {
-                resetFactions();
-                generateBoard();
-                return;
-            }
-        }
-        outputFactions = outputFactions.concat('<button onclick = submitBids()> Submit </button>');
-        document.getElementById('output').innerHTML = outputFactions;
-        
-        resetFactions();
-        return newFactions;
-    }
-    
-    function submitBids() {
-        var playerIndex = playerList.indexOf(document.getElementById('playerName').value);
-        playerBids[playerIndex] = [];
-        for (i = 0 ; i < playerNumber; i++) {
-           if (isNaN(document.getElementById('bid'.concat(i.toString())).value)) {
-               document.getElementById('otherOutput2').innerHTML = 'Goddammit Kyle! I told you not to put strings in here!!! GRRRR... You have to bid again';
-               playerBids[playerIndex] = [];
-               return
-           }
-            playerBids[playerIndex].push(parseInt(Math.abs(document.getElementById('bid'.concat(i.toString())).value)));
-            document.getElementById('bid'.concat(i.toString())).value = '';
-            document.getElementById('playerName').value = '';
-        }
-        if (Array.from(playerBids, (bid_set) => bid_set.length).indexOf(0) == -1) {
-            document.getElementById('status').innerHTML = "All bids submitted: <button id = \"resolve_bidding\"  onclick=\"resolveBidding(\'max_bid\')\"> Resolve Bidding</button>";
-            document.getElementById('resolve_bidding').focus();
-        } else {
-            document.getElementById('otherOutput').innerHTML = 'Yet to bid: '.concat(Array.from(findEmptyEntries(playerBids), (zero_index) => playerList[zero_index]));
-            document.getElementById('playerName').focus();
-        }
-        document.getElementById('otherOutput2').innerHTML = '';
-    }
-    
-    function findEmptyEntries(array){
-        // This for loop shamelessly taken off of Stack Exchange here: https://stackoverflow.com/questions/20798477/how-to-find-index-of-all-occurrences-of-element-in-array because I'm lazy
-        
-        var indexes = [], i;
-        for(i = 0; i < array.length; i++)
-            if (array[i].length == 0)
-                indexes.push(i);
-        return indexes;
-    }
-    
-    function randPick(list) {
-        var pick = Math.floor( list.length * Math.random() );
-        return list.splice(pick, 1);
-    }
-    var output_permutations = [];
-    
-    function resolveBidding(method) {
-        console.log('Bidding resolver started');
-        var bidResultString = '';
-        generate([...Array(parseInt(playerNumber)).keys()], output);
-        var best_performer = [0,[]];
-        if (true) {
-            for (var i = 0; i< output_permutations.length; i++) {
-                console.log(output_permutations);
-                console.log(maxBid(playerBids, [...output_permutations[i]]));
-                if (maxBid(playerBids, [...output_permutations[i]]) > best_performer[0]) {
-                    best_performer[0] = maxBid(playerBids, [...output_permutations[i]]);
-                    best_performer[1] = [...output_permutations[i]];
-                }
-            }
-        }
-        console.log('got here (before the loop) what follows is the player List');
-        console.log(playerList);
-        
-        for (var i = 0; i < playerList.length; i++) {
-            bidResultString = bidResultString.concat('Player ', playerList[i], ' receives ', newFactions[best_performer[1][i]], ' for ', playerBids[i][best_performer[1][i]].toString(), ' coins <br>');
-        }
-        document.getElementById('bidReturns').innerHTML = bidResultString;
-        console.log(best_performer);
-        return best_performer;
-    }
-    
-    function maxBid(playerBidsInput, testCombo) {
-        sum = 0;
-        for (var j = 0; j < playerNumber; j++) {
-            sum += parseInt(playerBidsInput[j][testCombo[j]]);
-        }
-        console.log(testCombo, sum);
-        return sum;
-    }
-    
-    function generate(array, result, n) {
-        n = n || array.length;
-        if (n == 1) {
-            result(array);
-        } else {
-            for (var i = 1; i <= n ; i++) {
-                generate(array, result, n-1);
-                if (n % 2) {
-                    [array[0], array[n-1]] = [array[n-1], array[0]];
-                } else {
-                    [array[i-1], array[n-1]] = [array[n-1], array[i-1]];
-                }
-            }
-        }
-    }
-    
-    function output(input) {
-        output_permutations.push([...input]);
-    }
-    
-</script>      
+    <div class="column-left">
+        <p>Enter the number of players:</p>
+        <input id="player_Number">
+        <button onclick="setPlayerNumber()">Set Player Number</button> <br>
+        <div class="player-names">
+            <div id='PlayerNamesTitle' class="normal"></div>
+            <div id='player_info'></div>
+            <div id='set_players'></div>
+        </div>
+        <br>
+        <div>
+            <button onclick="generateBoard()">
+                Generate Board
+            </button>
+        </div>
+    </div>
+
+    <div class="column-center">
+        <p id = 'output'></p>
+        <p id = 'otherOutput'></p>
+        <p id = 'otherOutput2'></p>
+    </div>
+    <div class="column-right">
+        <p id = 'bidReturns'></p>
+        <p id = 'status'></p>
+    </div>
+    <script type="text/javascript" src="selector_code.js"></script>
 </body>
-<p id = 'output'>fdasfs</p>
-<p id = 'otherOutput'></p>
-<p id = 'otherOutput2'></p>
 
 </html>
